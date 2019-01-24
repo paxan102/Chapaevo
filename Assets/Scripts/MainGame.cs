@@ -63,7 +63,9 @@ public class MainGame : MonoBehaviour
         secondPlayerController.OnEndOfStep.AddListener(HandleEndOfStepSecondPlayer);
 
         firstPlayer.OnLoseRound.AddListener(HandleLoseRoundFirstPlayer);
+        firstPlayer.OnWinRound.AddListener(HandleLoseRoundSecondPlayer);
         secondPlayer.OnLoseRound.AddListener(HandleLoseRoundSecondPlayer);
+        secondPlayer.OnWinRound.AddListener(HandleLoseRoundFirstPlayer);
 
         UI.firstPlayerYourMove.gameObject.SetActive(true);
         firstPlayerController.Enable();
@@ -102,6 +104,7 @@ public class MainGame : MonoBehaviour
 
     void HandleLoseRoundFirstPlayer()
     {
+        firstPlayerController.gameObject.SetActive(false);
         secondPlayerController.gameObject.SetActive(false);
 
         if (!(secondPlayerController.GetAlliesCounter() == firstPlayerController.GetAlliesCounter()))
@@ -123,13 +126,14 @@ public class MainGame : MonoBehaviour
         secondPlayersWins += 1;
         UI.secondPlayerWins.text = secondPlayersWins.ToString();
 
-        secondPlayerController.Enable();
+        HandleEndOfStepFirstPlayer();
     }
 
     void HandleLoseRoundSecondPlayer()
     {
         firstPlayerController.gameObject.SetActive(false);
-        
+        secondPlayerController.gameObject.SetActive(false);
+
         if (!(firstPlayerController.GetAlliesCounter() == secondPlayerController.GetAlliesCounter()))
             firstPlayer.Forward();
 
@@ -149,7 +153,7 @@ public class MainGame : MonoBehaviour
         firstPlayerWins += 1;
         UI.firstPlayerWins.text = firstPlayerWins.ToString();
 
-        firstPlayerController.Enable();
+        HandleEndOfStepSecondPlayer();
     }
 
     void SetupBothRows()

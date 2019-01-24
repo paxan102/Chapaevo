@@ -134,6 +134,7 @@ public class CheckerControllerUser : CheckerController
             {
                 isShooting = true;
                 selectedChecker.CheckerUnselected();
+                ChangeCheckersColor(selectedChecker, TypeOfMaterial.BASE_MATERIAL);
                 selectedChecker.Move(-direction, procent);
                 Invoke("Disable", 2f);
             }

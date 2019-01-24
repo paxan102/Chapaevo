@@ -22,12 +22,21 @@ public class CheckerControllerAI : CheckerController
         ChangeCheckersColor(selectedChecker, TypeOfMaterial.SELECTED_MATERIAL);
 
         currentForceProcent = Random.Range(minForceProcent, maxForceProcent);
-        
+
+        foreach (var enemyChecker in enemyCheckersPool)
+        {
+            if (enemyChecker.gameObject.activeSelf)
+            {
+                directionToNearestChecker = enemyCheckersPool[0].transform.position - selectedChecker.transform.position;
+                break;
+            }
+        }
+
         directionToNearestChecker = enemyCheckersPool[0].transform.position - selectedChecker.transform.position;
 
         foreach (var enemyChecker in enemyCheckersPool)
         {
-            if (enemyChecker.gameObject.activeSelf == true)
+            if (enemyChecker.gameObject.activeSelf)
             {
                 Vector3 newDirection = enemyChecker.transform.position - selectedChecker.transform.position;
 

@@ -6,6 +6,7 @@ using UnityEngine.Events;
 public class CheckerController : MonoBehaviour
 {
     [HideInInspector] public UnityEvent OnEndOfStep = new UnityEvent();
+    [HideInInspector] public UnityEvent OnWinRound = new UnityEvent();
     [HideInInspector] public UnityEvent OnLoseRound = new UnityEvent();
 
     public void SetEnemyCheckersPool(List<Checker> enemyCheckersPool)
@@ -113,7 +114,7 @@ public class CheckerController : MonoBehaviour
 
         UI.SetAliveCheckers(typeOfPlayer, countOfAllies, countOfEnemies);
 
-        if (CheckersCount(alliesCheckersPool) > 0)
+        if (countOfAllies > 0)
         {
             if (countOfAllies < currentAlliesCount)
             {
@@ -124,7 +125,7 @@ public class CheckerController : MonoBehaviour
 
             if (countOfEnemies == 0)
             {
-                OnEndOfStep.Invoke();
+                OnWinRound.Invoke();
                 return;
             }
 

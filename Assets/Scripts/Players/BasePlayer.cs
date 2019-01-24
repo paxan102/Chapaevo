@@ -6,6 +6,7 @@ using UnityEngine.Events;
 public class BasePlayer : MonoBehaviour
 {
     [HideInInspector] public UnityEvent OnLoseRound = new UnityEvent();
+    [HideInInspector] public UnityEvent OnWinRound = new UnityEvent();
     [SerializeField] List<Checker> checkersPool = new List<Checker>();
 
     public virtual void Init(Board board, CheckerController checkerController, UIManager UI)
@@ -25,6 +26,7 @@ public class BasePlayer : MonoBehaviour
         SetupRow();
 
         checkerController.OnLoseRound.AddListener(HandleOnLose);
+        checkerController.OnWinRound.AddListener(HandleOnWin);
     }
 
     public List<Checker> GetCheckersPool()
@@ -76,7 +78,12 @@ public class BasePlayer : MonoBehaviour
     void HandleOnLose()
     {
         OnLoseRound.Invoke();
-    }   
+    }
+
+    void HandleOnWin()
+    {
+        OnWinRound.Invoke();
+    }
 
     #endregion
 }
