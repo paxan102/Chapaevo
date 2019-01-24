@@ -93,7 +93,7 @@ public class Checker : MonoBehaviour
         force.x *= procent;        
         force.z *= procent;
 
-        rb.AddForce(force, ForceMode.Impulse);
+        rb.AddForce(force, ForceMode.VelocityChange);
     }
 
     public void CheckerSelected()
