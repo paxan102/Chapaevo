@@ -5,28 +5,24 @@ using UnityEngine.Events;
 
 public class BasePlayer : MonoBehaviour
 {
-    [HideInInspector] public UnityEvent OnLoseRound = new UnityEvent();
-    [HideInInspector] public UnityEvent OnWinRound = new UnityEvent();
-    [SerializeField] List<Checker> checkersPool = new List<Checker>();
+    [HideInInspector] public UnityEvent OnEndOfTurn = new UnityEvent();
 
-    public virtual void Init(Board board, CheckerController checkerController, UIManager UI)
+    [SerializeField] protected List<Checker> checkersPool = new List<Checker>();
+
+    public virtual void Init(Board board, UIManager ui)
     {
-        foreach (var checker in checkersPool)
-        {
-            if (typeOfPlayer == TypeOfPlayer.FIRST)
-                checker.Init(TypeOfCheckers.WHITE);
-            else
-                checker.Init(TypeOfCheckers.BLACK);
-        }
-
         this.board = board;
-        
-        checkerController.Init(checkersPool, UI, typeOfPlayer);
+        this.ui = ui;
+    }
+    
+    public virtual void SetupController(CheckerController checkerController)
+    {
+        if(this.checkerController)
+            this.checkerController.OnEndOfStep.RemoveListener(HandleOnEndOfStep);
 
-        SetupRow();
-
-        checkerController.OnLoseRound.AddListener(HandleOnLose);
-        checkerController.OnWinRound.AddListener(HandleOnWin);
+        this.checkerController = checkerController;
+        checkerController.SetupPlayer(checkersPool, uiPlayer);
+        checkerController.OnEndOfStep.AddListener(HandleOnEndOfStep);
     }
 
     public List<Checker> GetCheckersPool()
@@ -38,12 +34,17 @@ public class BasePlayer : MonoBehaviour
     {
         for (int i = 0; i < checkersPool.Count; i++)
         {
-            checkersPool[i].SetIsCanSelect(false);
+            checkersPool[i].SetIsPlayerCanSelect(false);
             checkersPool[i].ResetForces();
             checkersPool[i].transform.position = new Vector3(
                 board.GetRowXs()[i], board.GetHeight(), board.GetRowZ(currentRow));
             checkersPool[i].transform.rotation = Quaternion.Euler(0, 0, 0);
         }
+    }
+
+    public UIPlayer GetUIPlayer()
+    {
+        return uiPlayer;
     }
 
     public Rows GetCurrentRow()
@@ -54,42 +55,63 @@ public class BasePlayer : MonoBehaviour
     public void DisableCheckers()
     {
         foreach (var checker in checkersPool)
-            checker.gameObject.SetActive(false);
+            checker.Disable();
     }
 
     public void EnableChekers()
     {
         foreach (var checker in checkersPool)
-            checker.gameObject.SetActive(true);
+            checker.Enable();
     }
 
-    public bool GetWin()
+    public void DisableController()
     {
-        return win;
+        checkerController.Disable();
+    }
+
+    public void EnableController()
+    {
+        checkerController.Enable();
+    }
+
+    public void ResetUIStrenght()
+    {
+        uiPlayer.SetStrengthScale(0);
+    }
+
+    public void EnableUIYourMove()
+    {
+        uiPlayer.SetYourMove(true);
+    }
+
+    public void DisableUIYourMove()
+    {
+        uiPlayer.SetYourMove(false);
+    }
+
+    public bool GetWinGame()
+    {
+        return winGame;
+    }
+
+    public void ResetWinGame()
+    {
+        winGame = false;
     }
 
     #region private
 
     Board board;
+    CheckerController checkerController;
+    protected UIManager ui;
     protected Rows currentRow;
-    protected TypeOfPlayer typeOfPlayer;
-    protected bool win = false;
+    protected UIPlayer uiPlayer;
+    protected bool winGame;
 
-    void HandleOnLose()
+    void HandleOnEndOfStep()
     {
-        OnLoseRound.Invoke();
-    }
-
-    void HandleOnWin()
-    {
-        OnWinRound.Invoke();
+        OnEndOfTurn.Invoke();
     }
 
     #endregion
-}
-
-public enum TypeOfPlayer
-{
-    FIRST,
-    SECOND
 }

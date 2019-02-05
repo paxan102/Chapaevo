@@ -4,12 +4,22 @@ using UnityEngine;
 
 public class SecondPlayer : BasePlayer
 {
-    public override void Init(Board board, CheckerController checkerController, UIManager UI)
+    public override void Init(Board board, UIManager ui)
+    {
+        uiPlayer = ui.GetSecondPlayer();
+
+        ResetCurrentRow();
+        foreach (var checker in checkersPool)
+        {
+            checker.Init(TypeOfCheckers.BLACK);
+        }
+
+        base.Init(board, ui);
+    }
+
+    public void ResetCurrentRow()
     {
         currentRow = Rows.EIGHTH_ROW;
-        typeOfPlayer = TypeOfPlayer.SECOND;
-
-        base.Init(board, checkerController, UI);
     }
 
     public void Back()
@@ -21,6 +31,6 @@ public class SecondPlayer : BasePlayer
     {
         currentRow--;
         if (currentRow == Rows.FIRST_ROW)
-            win = true;
+            winGame = true;
     }
 }

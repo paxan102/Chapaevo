@@ -8,160 +8,72 @@ public class MainGame : MonoBehaviour
     [SerializeField] Board board;
     [SerializeField] FirstPlayer firstPlayer;
     [SerializeField] SecondPlayer secondPlayer;
-    [SerializeField] CheckerControllerUser checkerControllerUserFirstPlayer;
-    [SerializeField] CheckerControllerUser checkerControllerUserSecondPlayer;
-    [SerializeField] CheckerControllerAI checkerControllerAIFirstPlayer;
-    [SerializeField] CheckerControllerAI checkerControllerAISecondPlayer;
-    [SerializeField] UIManager UI;
-    
+    [SerializeField] CheckerControllerUser checkerControllerUser;
+    [SerializeField] CheckerControllerAI checkerControllerAI;
+    [SerializeField] RuleBase ruleBase;
+    [SerializeField] UIManager ui;
+
     #region private
+
+    const int FIRST_PLAYER = 0;
+    const int SECOND_PLAYER = 1;
 
     private void Start ()
     {
         Physics.gravity = new Vector3(0, -130F, 0);
 
-        UI.Init();
+        ui.Init();
+        firstPlayer.Init(board, ui);
+        secondPlayer.Init(board, ui);
+        ruleBase.Init(ui);
 
-        UI.OnClickFirstPlayer.AddListener(HandleOnClickFirstPlayer);
-        UI.OnClickSecondPlayer.AddListener(HandleOnClickSecondPlayer);
-        UI.OnClickRestart.AddListener(HandleOnClickRestart);
+        ruleBase.OnPlayerWin.AddListener(HandleOnWinGame);
+        ui.OnChooseFirstPlayer.AddListener(HandleOnClickFirstPlayer);
+        ui.OnChooseSecondPlayer.AddListener(HandleOnClickSecondPlayer);
+        ui.OnRestartButtonClick.AddListener(HandleOnClickRestart);
+    }
+
+    void HandleOnWinGame(int player)
+    {
+        if (player == FIRST_PLAYER)
+            ui.EnableWinScreen(FIRST_PLAYER);
+        else
+            ui.EnableWinScreen(SECOND_PLAYER);
     }
 
     void HandleOnClickFirstPlayer()
     {
-        firstPlayerController = checkerControllerUserFirstPlayer;
-        secondPlayerController = checkerControllerAISecondPlayer;
+        firstPlayer.SetupController(checkerControllerUser);
+        
+        secondPlayer.SetupController(checkerControllerAI);
+        checkerControllerAI.SetupEnemyCheckers(firstPlayer.GetCheckersPool());
+
+        ui.ResetPlayers();
 
         StartGame();
     }
 
     void HandleOnClickSecondPlayer()
     {
-        firstPlayerController = checkerControllerAIFirstPlayer;
-        secondPlayerController = checkerControllerUserSecondPlayer;
+        secondPlayer.SetupController(checkerControllerUser);
+        
+        firstPlayer.SetupController(checkerControllerAI);
+        checkerControllerAI.SetupEnemyCheckers(secondPlayer.GetCheckersPool());
+        
+        ui.ResetPlayers();
 
         StartGame();
     }
 
     void StartGame()
     {
-        UI.ResetUI();
-
-        firstPlayer.Init(board, firstPlayerController, UI);
-        secondPlayer.Init(board, secondPlayerController, UI);
-
-        firstPlayerController.gameObject.SetActive(false);
-        secondPlayerController.gameObject.SetActive(false);
-
-        firstPlayerController.SetEnemyCheckersPool(
-            GameObject.FindGameObjectWithTag(SECOND_PLAYER_TAG).GetComponent<SecondPlayer>().GetCheckersPool());
-
-        secondPlayerController.SetEnemyCheckersPool(
-            GameObject.FindGameObjectWithTag(FIRST_PLAYER_TAG).GetComponent<FirstPlayer>().GetCheckersPool());
-
-        firstPlayerController.OnEndOfStep.AddListener(HandleEndOfStepFirstPlayer);
-        secondPlayerController.OnEndOfStep.AddListener(HandleEndOfStepSecondPlayer);
-
-        firstPlayer.OnLoseRound.AddListener(HandleLoseRoundFirstPlayer);
-        firstPlayer.OnWinRound.AddListener(HandleLoseRoundSecondPlayer);
-        secondPlayer.OnLoseRound.AddListener(HandleLoseRoundSecondPlayer);
-        secondPlayer.OnWinRound.AddListener(HandleLoseRoundFirstPlayer);
-
-        UI.firstPlayerYourMove.gameObject.SetActive(true);
-        firstPlayerController.Enable();
+        ruleBase.SetupPlayers(firstPlayer, secondPlayer);
     }
-    
-    protected const string FIRST_PLAYER_TAG = "first player";
-    protected const string SECOND_PLAYER_TAG = "second player";
-
-    CheckerController firstPlayerController;
-    CheckerController secondPlayerController;
-
-    int firstPlayerWins = 0;
-    int secondPlayersWins = 0;
 
     void HandleOnClickRestart()
     {
-        firstPlayerWins = 0;
-        secondPlayersWins = 0;
-
-        UI.chooseScreen.gameObject.SetActive(true);
-    }
-
-    void HandleEndOfStepFirstPlayer()
-    {
-        secondPlayerController.Enable();
-        UI.secondPlayerYourMove.gameObject.SetActive(true);
-        UI.firstPlayerYourMove.gameObject.SetActive(false);
-    }
-
-    void HandleEndOfStepSecondPlayer()
-    {
-        firstPlayerController.Enable();
-        UI.firstPlayerYourMove.gameObject.SetActive(true);
-        UI.secondPlayerYourMove.gameObject.SetActive(false);
-    }
-
-    void HandleLoseRoundFirstPlayer()
-    {
-        firstPlayerController.gameObject.SetActive(false);
-        secondPlayerController.gameObject.SetActive(false);
-
-        if (!(secondPlayerController.GetAlliesCounter() == firstPlayerController.GetAlliesCounter()))
-            secondPlayer.Forward();
-
-        if (secondPlayer.GetWin())
-        {
-            UI.WinScreenOpen(TypeOfPlayer.SECOND);
-            return;
-        }
-
-        UI.ResetUI();
-
-        if (secondPlayer.GetCurrentRow() == firstPlayer.GetCurrentRow())
-            firstPlayer.Back();
-
-        SetupBothRows();
-
-        secondPlayersWins += 1;
-        UI.secondPlayerWins.text = secondPlayersWins.ToString();
-
-        HandleEndOfStepFirstPlayer();
-    }
-
-    void HandleLoseRoundSecondPlayer()
-    {
-        firstPlayerController.gameObject.SetActive(false);
-        secondPlayerController.gameObject.SetActive(false);
-
-        if (!(firstPlayerController.GetAlliesCounter() == secondPlayerController.GetAlliesCounter()))
-            firstPlayer.Forward();
-
-        if (firstPlayer.GetWin())
-        {
-            UI.WinScreenOpen(TypeOfPlayer.FIRST);
-            return;
-        }
-
-        UI.ResetUI();
-
-        if (firstPlayer.GetCurrentRow() == secondPlayer.GetCurrentRow())
-            secondPlayer.Back();
-
-        SetupBothRows();
-
-        firstPlayerWins += 1;
-        UI.firstPlayerWins.text = firstPlayerWins.ToString();
-
-        HandleEndOfStepSecondPlayer();
-    }
-
-    void SetupBothRows()
-    {
-        firstPlayer.SetupRow();
-        firstPlayer.EnableChekers();
-        secondPlayer.SetupRow();
-        secondPlayer.EnableChekers();
+        ruleBase.ResetPlayersWins();
+        ui.EnableChooseScreen();
     }
 
     #endregion

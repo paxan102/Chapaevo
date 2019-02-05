@@ -6,59 +6,29 @@ using UnityEngine.Events;
 public class CheckerController : MonoBehaviour
 {
     [HideInInspector] public UnityEvent OnEndOfStep = new UnityEvent();
-    [HideInInspector] public UnityEvent OnWinRound = new UnityEvent();
-    [HideInInspector] public UnityEvent OnLoseRound = new UnityEvent();
 
-    public void SetEnemyCheckersPool(List<Checker> enemyCheckersPool)
+    public virtual void SetupPlayer(List<Checker> checkersPool, UIPlayer uiPlayer)
     {
-        this.enemyCheckersPool = enemyCheckersPool;
-        currentEnemiesCount = enemyCheckersPool.Count;
-        typeOfEnemyCheckers = enemyCheckersPool[0].GetTypeOfCheckers();
-    }
+        this.uiPlayer = uiPlayer;
+        allyCheckersPool = checkersPool;
 
-    public virtual void Init(List<Checker> checkersPool, UIManager UI, TypeOfPlayer typeOfPlayer)
-    {
-        this.UI = UI;
-        alliesCheckersPool = checkersPool;
-        currentAlliesCount = checkersPool.Count;
-        this.typeOfPlayer = typeOfPlayer;
         foreach (var checker in checkersPool)
         {
             checker.DisableArrow();
             checker.SetMaterials(checker.GetComponent<MeshRenderer>().materials);
-            ChangeCheckersColor(checker, TypeOfMaterial.BASE_MATERIAL);
-            checker.gameObject.SetActive(true);
+            ChangeCheckerColor(checker, TypeOfMaterial.BASE_MATERIAL);
         }
-    }
-
-    public int GetAlliesCounter()
-    {
-        return currentAlliesCount;
-    }
-
-    public void ResetCounters()
-    {
-        currentAlliesCount = 8;
-        currentEnemiesCount = 8;
     }
 
     public virtual void Enable()
     {
-        if (CheckersCount(alliesCheckersPool) == 0)
-        {
-            OnLoseRound.Invoke();
-            return;
-        }
-
-        currentAlliesCount = CheckersCount(alliesCheckersPool);
-        currentEnemiesCount = CheckersCount(enemyCheckersPool);
         gameObject.SetActive(true);
     }
 
     public virtual void Disable()
     {        
         gameObject.SetActive(false);
-        CheckEvents();
+        OnEndOfStep.Invoke();
     }
     
     #region private
@@ -68,97 +38,15 @@ public class CheckerController : MonoBehaviour
     protected const float MAX_MOUSE_DRAG = 35;
     protected const float CHECKER_HEIGHT = 0.9f;
 
-    protected List<Checker> alliesCheckersPool;
-    protected List<Checker> enemyCheckersPool;
-    protected int currentEnemiesCount;
-    protected int currentAlliesCount;
-    protected UIManager UI;
-    protected TypeOfPlayer typeOfPlayer;
-    protected TypeOfCheckers typeOfEnemyCheckers;
-    bool isAllCheckerStopped = false;
-
-    void CheckEvents()
-    {
-        isAllCheckerStopped = true;
-
-        foreach (var checker in alliesCheckersPool)
-        {
-            if (checker.gameObject.activeSelf)
-                if (checker.GetVelocity().magnitude > 0)
-                {
-                    isAllCheckerStopped = false;
-                    break;
-                }
-        }
-
-        foreach (var checker in enemyCheckersPool)
-        {
-            if (checker.gameObject.activeSelf)
-                if (checker.GetVelocity().magnitude > 0)
-                {
-                    isAllCheckerStopped = false;
-                    break;
-                }
-        }
-
-        if (!isAllCheckerStopped)
-        {
-            Invoke("CheckEvents", 0.1f);
-            return;
-        }
-
-        UI.SetStrengthScale(typeOfPlayer, 0);
-
-        int countOfAllies = CheckersCount(alliesCheckersPool);
-        int countOfEnemies = CheckersCount(enemyCheckersPool);
-
-        UI.SetAliveCheckers(typeOfPlayer, countOfAllies, countOfEnemies);
-
-        if (countOfAllies > 0)
-        {
-            if (countOfAllies < currentAlliesCount)
-            {
-                currentAlliesCount = countOfAllies;
-                OnEndOfStep.Invoke();
-                return;
-            }
-
-            if (countOfEnemies == 0)
-            {
-                OnWinRound.Invoke();
-                return;
-            }
-
-            if (countOfEnemies < currentEnemiesCount)
-            {
-                currentEnemiesCount = countOfEnemies;
-                Enable();
-                return;
-            }
-
-            OnEndOfStep.Invoke();
-        }   
-        else
-            OnLoseRound.Invoke();
-    }
-
-    int CheckersCount(List<Checker> checkersPool)
-    {
-        int result = 0;
-
-        foreach (var checker in checkersPool)
-            if (checker.gameObject.activeSelf)
-                result++;
-
-        return result;
-    }
+    protected List<Checker> allyCheckersPool;
+    protected UIPlayer uiPlayer;
 
     protected virtual void HandleSelectChecker(Checker checker)
     {
-        ChangeCheckersColor(checker, TypeOfMaterial.SELECTED_MATERIAL);
+        ChangeCheckerColor(checker, TypeOfMaterial.SELECTED_MATERIAL);
     }
      
-    protected void ChangeCheckersColor(Checker checker, TypeOfMaterial typeOfMaterial)
+    protected void ChangeCheckerColor(Checker checker, TypeOfMaterial typeOfMaterial)
     {
         MeshRenderer meshRenderer = checker.GetComponent<MeshRenderer>();
         Material[] materials = checker.GetMaterials();
@@ -174,8 +62,7 @@ public class CheckerController : MonoBehaviour
     }
 
     #endregion
-
-
+    
     public enum TypeOfMaterial
     {
         BASE_MATERIAL,

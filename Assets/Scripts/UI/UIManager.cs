@@ -6,133 +6,113 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    [HideInInspector] public UnityEvent OnClickRestart = new UnityEvent();
-    [HideInInspector] public UnityEvent OnClickFirstButton = new UnityEvent();
-    [HideInInspector] public UnityEvent OnClickSecondButton = new UnityEvent();
-    [HideInInspector] public UnityEvent OnClickFirstPlayer = new UnityEvent();
-    [HideInInspector] public UnityEvent OnClickSecondPlayer = new UnityEvent();
+    [HideInInspector] public UnityEvent OnChooseFirstPlayer = new UnityEvent();
+    [HideInInspector] public UnityEvent OnChooseSecondPlayer = new UnityEvent();
+    [HideInInspector] public UnityEvent OnRestartButtonClick = new UnityEvent();
 
-    [SerializeField] MonoBehaviour firstPlayerStrength;
-    [SerializeField] MonoBehaviour secondPlayerStrength;
+    [SerializeField] UIPlayer firstPlayer;
+    [SerializeField] UIPlayer secondPlayer;
 
-    [SerializeField] public Text firstPlayerYourMove;
-    [SerializeField] public Text secondPlayerYourMove;
+    [SerializeField] UIScreen firstScreen;
+    [SerializeField] UIScreen secondScreen;
 
-    [SerializeField] public Text firstPlayerWins;
-    [SerializeField] public Text secondPlayerWins;
+    [SerializeField] UIWinScreen winScreen;
+    [SerializeField] UISelectPlayers selectPlayersScreen;
 
-    [SerializeField] public Text firstPlayerCheckersAlive;
-    [SerializeField] public Text secondPlayerCheckersAlive;
+    public UIPlayer GetFirstPlayer()
+    {
+        return firstPlayer;
+    }
 
-    [SerializeField] public MonoBehaviour winScreen;
-    [SerializeField] public Text winText;
-    [SerializeField] public Button winButton;
-
-    [SerializeField] public MonoBehaviour firstScreen;
-    [SerializeField] public Button firstButton;
-
-    [SerializeField] public MonoBehaviour secondScreen;
-    [SerializeField] public Button secondButton;
-
-    [SerializeField] public MonoBehaviour chooseScreen;
-    [SerializeField] public Button firstPlayerButton;
-    [SerializeField] public Button secondPlayerButton;
-
+    public UIPlayer GetSecondPlayer()
+    {
+        return secondPlayer;
+    }
 
     public void Init()
     {
-        firstPlayerYourMove.gameObject.SetActive(false);
-        secondPlayerYourMove.gameObject.SetActive(false);
         winScreen.gameObject.SetActive(false);
         secondScreen.gameObject.SetActive(false);
-        chooseScreen.gameObject.SetActive(false);
+        selectPlayersScreen.gameObject.SetActive(false);
 
-        firstButton.onClick.AddListener(HandleFirstButtonClick);
-        secondButton.onClick.AddListener(HandleSecondButtonClick);
+        firstScreen.Init();
+        secondScreen.Init();
+        firstPlayer.Init();
+        secondPlayer.Init();
+        winScreen.Init();
+        selectPlayersScreen.Init();
 
-        firstPlayerButton.onClick.AddListener(HandleFirstPlayerButtonClick);
-        secondPlayerButton.onClick.AddListener(HandleSecondPlayerButtonClick);
-    }
-    
-    public void WinScreenOpen(TypeOfPlayer typeOfPlayer)
-    {
-        string winString;
-        if (typeOfPlayer == TypeOfPlayer.FIRST)
-            winString = FIRST_PLAYER_WIN;
-        else
-            winString = SECOND_PLAYER_WIN;
+        firstScreen.OnClickButton.AddListener(HandleFirstScreenButtonClick);
+        secondScreen.OnClickButton.AddListener(HandleSecondScreenButtonClick);
 
-        winText.text = winString;
-        winScreen.gameObject.SetActive(true);
+        selectPlayersScreen.OnClickFirstPlayerButton.AddListener(HandleFirstPlayerButtonChoose);
+        selectPlayersScreen.OnClickSecondPlayerButton.AddListener(HandleSecondPlayerButtonChoose);
 
-        winButton.onClick.AddListener(HandleWinButtonClick);
+        winScreen.OnClickRestart.AddListener(HandleClickRestart);
     }
 
-    public void HandleWinButtonClick()
+    public void HandleClickRestart()
     {
-        winButton.onClick.RemoveListener(HandleWinButtonClick);
         winScreen.gameObject.SetActive(false);
-        OnClickRestart.Invoke();
+        OnRestartButtonClick.Invoke();
     }
 
-    public void HandleFirstButtonClick()
+    public void SetAliveCheckers(int first, int second)
     {
-        firstButton.onClick.RemoveListener(HandleFirstButtonClick);
-        firstScreen.gameObject.SetActive(false);
-        secondScreen.gameObject.SetActive(true);
-        OnClickFirstButton.Invoke();
+        firstPlayer.SetCountOfAliveCheckers(first);
+        secondPlayer.SetCountOfAliveCheckers(second);
     }
 
-    public void HandleSecondButtonClick()
+    public void SetWins(int first, int second)
     {
-        secondButton.onClick.RemoveListener(HandleSecondButtonClick);
-        secondScreen.gameObject.SetActive(false);
-        chooseScreen.gameObject.SetActive(true);
-        OnClickSecondButton.Invoke();
+        firstPlayer.SetPlayerWins(first);
+        secondPlayer.SetPlayerWins(second);
     }
 
-    public void HandleFirstPlayerButtonClick()
+    public void EnableChooseScreen()
     {
-        chooseScreen.gameObject.SetActive(false);
-        OnClickFirstPlayer.Invoke();
+        selectPlayersScreen.gameObject.SetActive(true);
     }
 
-    public void HandleSecondPlayerButtonClick()
+    public void EnableWinScreen(int player)
     {
-        chooseScreen.gameObject.SetActive(false);
-        OnClickSecondPlayer.Invoke();
+        winScreen.WinScreenOpen(player);
     }
 
-    public void SetAliveCheckers(TypeOfPlayer typeOfPlayer, int first, int second)
+    public void ResetPlayers()
     {
-        if (typeOfPlayer == TypeOfPlayer.FIRST)
-        {
-            firstPlayerCheckersAlive.text = first.ToString();
-            secondPlayerCheckersAlive.text = second.ToString();
-        }
-        else
-        {
-            firstPlayerCheckersAlive.text = second.ToString();
-            secondPlayerCheckersAlive.text = first.ToString();
-        }
+        firstPlayer.ResetPlayer();
+        secondPlayer.ResetPlayer();
     }
 
-    public void ResetUI()
+    #region private
+
+    const string FIRST_PLAYER_WIN = "1 PLAYER WIN";
+    const string SECOND_PLAYER_WIN = "2 PLAYER WIN";
+
+    void HandleFirstScreenButtonClick()
     {
-        firstPlayerYourMove.gameObject.SetActive(false);
-        secondPlayerYourMove.gameObject.SetActive(false);
-        firstPlayerCheckersAlive.text = "8";
-        secondPlayerCheckersAlive.text = "8";
-    }
-    
-    public void SetStrengthScale(TypeOfPlayer typeOfPlayer, float percent)
-    {
-        if (typeOfPlayer == TypeOfPlayer.FIRST)
-            firstPlayerStrength.transform.localScale = new Vector3(percent, 1, 1);
-        else
-            secondPlayerStrength.transform.localScale = new Vector3(percent, 1, 1);
+        firstScreen.Disable();
+        secondScreen.Enable();
     }
 
-    private const string FIRST_PLAYER_WIN = "1 PLAYER WIN";
-    private const string SECOND_PLAYER_WIN = "2 PLAYER WIN";
+    void HandleSecondScreenButtonClick()
+    {
+        secondScreen.Disable();
+        selectPlayersScreen.Enable();
+    }
+
+    void HandleFirstPlayerButtonChoose()
+    {
+        selectPlayersScreen.Disable();
+        OnChooseFirstPlayer.Invoke();
+    }
+
+    void HandleSecondPlayerButtonChoose()
+    {
+        selectPlayersScreen.Disable();
+        OnChooseSecondPlayer.Invoke();
+    }
+
+    #endregion
 }

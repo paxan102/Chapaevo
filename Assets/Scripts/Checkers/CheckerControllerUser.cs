@@ -4,9 +4,17 @@ using UnityEngine;
 
 public class CheckerControllerUser : CheckerController
 {
-    public override void Init(List<Checker> checkersPool, UIManager UI, TypeOfPlayer typeOfPlayer)
+    public override void SetupPlayer(List<Checker> checkersPool, UIPlayer uiPlayer)
     {
-        base.Init(checkersPool, UI, typeOfPlayer);
+        if (allyCheckersPool != null)
+        {
+            foreach (var checker in allyCheckersPool)
+            {
+                checker.OnSelected.RemoveListener(HandleSelectChecker);
+            }
+        }
+
+        base.SetupPlayer(checkersPool, uiPlayer);
 
         foreach (var checker in checkersPool)
         {
@@ -18,16 +26,16 @@ public class CheckerControllerUser : CheckerController
     {
         base.Enable();
 
-        foreach (var checker in alliesCheckersPool)
-            checker.SetIsCanSelect(true);
+        foreach (var checker in allyCheckersPool)
+            checker.SetIsPlayerCanSelect(true);
     }
 
     public override void Disable()
     {
         DisableSelect();
 
-        foreach (var checker in alliesCheckersPool)
-            checker.SetIsCanSelect(false);
+        foreach (var checker in allyCheckersPool)
+            checker.SetIsPlayerCanSelect(false);
 
         base.Disable();
     }
@@ -38,18 +46,17 @@ public class CheckerControllerUser : CheckerController
 
     bool isCheckerSelected = false;
     bool isInUnselectedRadius = false;
-    bool isShooting = false;
     Checker selectedChecker;
 
     protected override void HandleSelectChecker(Checker checker)
     {
         if (isCheckerSelected)
         {
-            foreach (var ally in alliesCheckersPool)
+            foreach (var ally in allyCheckersPool)
             {
                 if (ally != checker)
                 {
-                    ally.SetIsCanSelect(true);
+                    ally.SetIsPlayerCanSelect(true);
                 }
             }
 
@@ -61,11 +68,11 @@ public class CheckerControllerUser : CheckerController
 
         base.HandleSelectChecker(checker);
 
-        foreach(var ally in alliesCheckersPool)
+        foreach(var ally in allyCheckersPool)
         {
             if(ally != checker)
             {
-                ally.SetIsCanSelect(false);
+                ally.SetIsPlayerCanSelect(false);
             }
         }
 
@@ -92,13 +99,12 @@ public class CheckerControllerUser : CheckerController
         if (selectedChecker)
         {
             selectedChecker.DisableArrow();
-            ChangeCheckersColor(selectedChecker, TypeOfMaterial.BASE_MATERIAL);
+            ChangeCheckerColor(selectedChecker, TypeOfMaterial.BASE_MATERIAL);
             selectedChecker.OnMouseEnterInChecker.RemoveAllListeners();
             selectedChecker.OnMouseExitFromChecker.RemoveAllListeners();
             selectedChecker = null;
         }
-
-        isShooting = false;
+        
         isInUnselectedRadius = false;
         isCheckerSelected = false;
     }
@@ -106,9 +112,6 @@ public class CheckerControllerUser : CheckerController
     void Update()
     {
         if (!isCheckerSelected)
-            return;
-
-        if (isShooting)
             return;
 
         Vector3 currentMousePointInWorld = Camera.main.ScreenToWorldPoint(new Vector3(
@@ -120,23 +123,22 @@ public class CheckerControllerUser : CheckerController
         
         selectedChecker.GetArrowTransform().rotation = Quaternion.Euler(rotation.x + 90, rotation.y, rotation.z - 90);
 
-        float procent;
+        float percent;
         if (direction.magnitude >= MAX_MOUSE_DRAG)
-            procent = 1;
+            percent = 1;
         else
-            procent = direction.magnitude / MAX_MOUSE_DRAG;
+            percent = direction.magnitude / MAX_MOUSE_DRAG;
 
-        UI.SetStrengthScale(typeOfPlayer, procent);
+        uiPlayer.SetStrengthScale(percent);
 
         if (isInUnselectedRadius)
         {
             if (Input.GetMouseButtonUp(LEFT_MOUSE))
             {
-                isShooting = true;
                 selectedChecker.CheckerUnselected();
-                ChangeCheckersColor(selectedChecker, TypeOfMaterial.BASE_MATERIAL);
-                selectedChecker.Move(-direction, procent);
-                Invoke("Disable", 2f);
+                ChangeCheckerColor(selectedChecker, TypeOfMaterial.BASE_MATERIAL);
+                selectedChecker.Move(-direction, percent);
+                Disable();
             }
         }
     }

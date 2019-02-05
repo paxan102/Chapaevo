@@ -7,9 +7,20 @@ public class CheckerControllerAI : CheckerController
     [SerializeField] float minForceProcent; //0-1;
     [SerializeField] float maxForceProcent;
 
-    public override void Init(List<Checker> checkersPool, UIManager UI, TypeOfPlayer typeOfPlayer)
+    public void SetupEnemyCheckers(List<Checker> enemyCheckersPool)
     {
-        base.Init(checkersPool, UI, typeOfPlayer);
+        this.enemyCheckersPool = enemyCheckersPool;
+    }
+
+    Checker GetRandomEnableChecker()
+    {
+        List<Checker> enableCheckers = new List<Checker>();
+        foreach (var checker in allyCheckersPool)
+        {
+            if (checker.gameObject.activeSelf == true)
+                enableCheckers.Add(checker);
+        }
+        return enableCheckers[Random.Range(0, enableCheckers.Count)];
     }
 
     public override void Enable()
@@ -19,7 +30,7 @@ public class CheckerControllerAI : CheckerController
         rotateAngle = 45;
 
         selectedChecker = GetRandomEnableChecker();
-        ChangeCheckersColor(selectedChecker, TypeOfMaterial.SELECTED_MATERIAL);
+        ChangeCheckerColor(selectedChecker, TypeOfMaterial.SELECTED_MATERIAL);
 
         currentForceProcent = Random.Range(minForceProcent, maxForceProcent);
 
@@ -27,24 +38,24 @@ public class CheckerControllerAI : CheckerController
         {
             if (enemyChecker.gameObject.activeSelf)
             {
-                directionToNearestChecker = enemyCheckersPool[0].transform.position - selectedChecker.transform.position;
+                directionToNearestChecker = enemyChecker.transform.position - selectedChecker.transform.position;
                 break;
             }
         }
-
-        directionToNearestChecker = enemyCheckersPool[0].transform.position - selectedChecker.transform.position;
 
         foreach (var enemyChecker in enemyCheckersPool)
         {
             if (enemyChecker.gameObject.activeSelf)
             {
-                Vector3 newDirection = enemyChecker.transform.position - selectedChecker.transform.position;
+                Vector3 newDirection =  enemyChecker.transform.position - selectedChecker.transform.position;
 
                 RaycastHit hit = new RaycastHit();
                 Physics.Raycast(selectedChecker.transform.position, newDirection, out hit, 100);
 
+
                 Checker hitChecker = hit.collider.GetComponent<Checker>();
-                if (hitChecker && hitChecker.GetTypeOfCheckers() == typeOfEnemyCheckers)
+
+                if (hitChecker && hitChecker == enemyChecker)
                     if (newDirection.magnitude < directionToNearestChecker.magnitude)
                         directionToNearestChecker = newDirection;
             }
@@ -78,7 +89,8 @@ public class CheckerControllerAI : CheckerController
     float currentForceProcent;
     int rotateAngle;
     Vector3 lookRotation;
-    
+    List<Checker> enemyCheckersPool;
+
     void ShakeArrowRight()
     {
         rotateAngle--;
@@ -103,32 +115,21 @@ public class CheckerControllerAI : CheckerController
     
     void ChangeUIStrength()
     {
-        UI.SetStrengthScale(typeOfPlayer, currentForceProcent);
+        uiPlayer.SetStrengthScale(currentForceProcent);
         Invoke("UnselectChecker", 0.1f);
     }
 
     void UnselectChecker()
     {
         selectedChecker.CheckerUnselected();
-        ChangeCheckersColor(selectedChecker, TypeOfMaterial.BASE_MATERIAL);
+        ChangeCheckerColor(selectedChecker, TypeOfMaterial.BASE_MATERIAL);
         Invoke("Shoot", 0.1f);
     }
 
     void Shoot()
     {
         selectedChecker.Move(directionToNearestChecker, currentForceProcent);
-        Invoke("Disable", 2f);
-    }
-
-    Checker GetRandomEnableChecker()
-    {
-        List<Checker> enableCheckers = new List<Checker>();
-        foreach (var checker in alliesCheckersPool)
-        {
-            if (checker.gameObject.activeSelf == true)
-                enableCheckers.Add(checker);
-        }
-        return enableCheckers[Random.Range(0, enableCheckers.Count)];
+        Disable();
     }
 
     #endregion

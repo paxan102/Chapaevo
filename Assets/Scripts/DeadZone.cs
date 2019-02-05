@@ -7,6 +7,12 @@ public class DeadZone : MonoBehaviour {
 
     private void OnTriggerEnter(Collider other)
     {
-        other.gameObject.SetActive(false);
+        Checker checker = other.gameObject.GetComponent<Checker>();
+        
+        if (checker)
+        {
+            checker.Disable();
+        }
+        
     }
 }

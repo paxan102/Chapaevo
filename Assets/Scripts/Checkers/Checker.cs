@@ -4,10 +4,16 @@ using UnityEngine;
 using UnityEngine.Events;
 
 public class OnSelectedEvent : UnityEvent<Checker> { };
+//public class OnDeadEvent : UnityEvent<Checker> { };
+//public class OnRespawnEvent : UnityEvent<Checker> { };
 
 public class Checker : MonoBehaviour
 {
     [HideInInspector] public OnSelectedEvent OnSelected = new OnSelectedEvent();
+    //[HideInInspector] public OnDeadEvent OnDead = new OnDeadEvent();
+    //[HideInInspector] public OnRespawnEvent OnRespawn = new OnRespawnEvent();
+    [HideInInspector] public UnityEvent OnDead = new UnityEvent();
+    [HideInInspector] public UnityEvent OnRespawn = new UnityEvent();
     [HideInInspector] public UnityEvent OnMouseExitFromChecker = new UnityEvent();
     [HideInInspector] public UnityEvent OnMouseEnterInChecker = new UnityEvent();
 
@@ -84,6 +90,19 @@ public class Checker : MonoBehaviour
         arrow.SetActive(true);
     }
 
+    public void Enable()
+    {
+        gameObject.SetActive(true);
+        OnRespawn.Invoke();
+    }
+
+    public void Disable()
+    {
+        ResetForces();        
+        gameObject.SetActive(false);        
+        OnDead.Invoke();
+    }
+
     public void Move(Vector3 direction, float procent)
     {
         direction.Normalize();
@@ -108,7 +127,7 @@ public class Checker : MonoBehaviour
         DisableArrow();        
     }
 
-    public void SetIsCanSelect(bool isCanSelect)
+    public void SetIsPlayerCanSelect(bool isCanSelect)
     {
         this.isCanSelect = isCanSelect;
     } 

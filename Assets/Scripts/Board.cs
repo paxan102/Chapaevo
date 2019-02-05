@@ -38,6 +38,5 @@ public enum Rows
     FIFTH_ROW,
     SIXTH_ROW,
     SEVENTH_ROW,
-    EIGHTH_ROW,
-    COUNT
+    EIGHTH_ROW
 }
