@@ -72,7 +72,7 @@ public class MainGame : MonoBehaviour
 
     void HandleOnClickRestart()
     {
-        ruleBase.ResetPlayersWins();
+        ruleBase.ResetWins();
         ui.EnableChooseScreen();
     }
 

@@ -29,7 +29,7 @@ public class RuleBase : MonoBehaviour {
         EnableFirstPlayer();
     }
 
-    public void ResetPlayersWins()
+    public void ResetWins()
     {
         countOfFirstPlayerWinsRounds = 0;
         countOfSecondPlayerWinsRounds = 0;
@@ -37,9 +37,9 @@ public class RuleBase : MonoBehaviour {
 
     #region private
 
-    const string IS_ALL_STOPPED = "IsAllStopped";
-    const string CHECK_SHOULD_FIRST_PLAYER_END_TURN = "CheckShouldFirstPlayerEndTurn";
-    const string CHECK_SHOULD_SECOND_PLAYER_END_TURN = "CheckShouldSecondPlayerEndTurn";
+    protected const string IS_ALL_STOPPED = "IsAllStopped";
+    protected const string CHECK_SHOULD_FIRST_PLAYER_END_TURN = "CheckShouldFirstPlayerEndTurn";
+    protected const string CHECK_SHOULD_SECOND_PLAYER_END_TURN = "CheckShouldSecondPlayerEndTurn";
     const int FIRST_PLAYER = 0;
     const int SECOND_PLAYER = 1;
     
@@ -54,12 +54,6 @@ public class RuleBase : MonoBehaviour {
     bool isSecondPlayerLoseCheckers = false;
     bool firstPlayerWinRound = false;
     bool secondPlayerWinRound = false;
-
-    void ResetWins()
-    {
-        countOfFirstPlayerWinsRounds = 0;
-        countOfSecondPlayerWinsRounds = 0;
-    }
 
     void ResetLoseCheckers()
     {
@@ -87,7 +81,7 @@ public class RuleBase : MonoBehaviour {
         Invoke(CHECK_SHOULD_SECOND_PLAYER_END_TURN, 1.5f);
     }
 
-    void CheckShouldFirstPlayerEndTurn()
+    protected virtual void CheckShouldFirstPlayerEndTurn()
     {
         if (!IsAllStopped())
         {
@@ -110,7 +104,7 @@ public class RuleBase : MonoBehaviour {
         EnableSecondPlayer();
     }
 
-    void CheckShouldSecondPlayerEndTurn()
+    protected virtual void CheckShouldSecondPlayerEndTurn()
     {
         if (!IsAllStopped())
         {
@@ -133,7 +127,7 @@ public class RuleBase : MonoBehaviour {
         EnableFirstPlayer();
     }
 
-    void NextRound()
+    protected void NextRound()
     {      
         if (firstPlayerWinRound)
         {
@@ -178,7 +172,7 @@ public class RuleBase : MonoBehaviour {
         }
     }
 
-    bool IsSomebodyWinRound(int whoEndTurn)
+    protected bool IsSomebodyWinRound(int whoEndTurn)
     {
         if (countOfFirstPlayersCheckers == 0 && countOfSecondPlayerCheckers == 0)
         {
@@ -207,11 +201,12 @@ public class RuleBase : MonoBehaviour {
         return false;
     }
 
-    bool IsAllStopped()
+    protected bool IsAllStopped()
     {
         foreach(var checker in firstPlayer.GetCheckersPool())
         {
-            if (checker.GetVelocity().magnitude != 0)
+            Debug.Log(checker.GetVelocity().magnitude);
+            if (checker.GetVelocity().magnitude > 0.01f)
             {
                 return false;
             }
@@ -219,7 +214,8 @@ public class RuleBase : MonoBehaviour {
 
         foreach (var checker in secondPlayer.GetCheckersPool())
         {
-            if (checker.GetVelocity().magnitude != 0)
+            Debug.Log(checker.GetVelocity().magnitude);
+            if (checker.GetVelocity().magnitude > 0.01f)
             {
                 return false;
             }
@@ -290,7 +286,7 @@ public class RuleBase : MonoBehaviour {
         secondPlayer.OnEndOfTurn.RemoveListener(HandleOnSecondPlayerEndOfTurn);
     }
 
-    void EnableFirstPlayer()
+    protected void EnableFirstPlayer()
     {
         ResetLoseCheckers();
 
@@ -302,7 +298,7 @@ public class RuleBase : MonoBehaviour {
         firstPlayer.EnableController();
     }
 
-    void EnableSecondPlayer()
+    protected void EnableSecondPlayer()
     {
         ResetLoseCheckers();
 
@@ -314,7 +310,7 @@ public class RuleBase : MonoBehaviour {
         secondPlayer.EnableController();
     }
     
-    void SetupBothRows()
+    protected void SetupBothRows()
     {
         ResetCharacteristics();
 

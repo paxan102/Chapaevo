@@ -4,14 +4,10 @@ using UnityEngine;
 using UnityEngine.Events;
 
 public class OnSelectedEvent : UnityEvent<Checker> { };
-//public class OnDeadEvent : UnityEvent<Checker> { };
-//public class OnRespawnEvent : UnityEvent<Checker> { };
 
 public class Checker : MonoBehaviour
 {
     [HideInInspector] public OnSelectedEvent OnSelected = new OnSelectedEvent();
-    //[HideInInspector] public OnDeadEvent OnDead = new OnDeadEvent();
-    //[HideInInspector] public OnRespawnEvent OnRespawn = new OnRespawnEvent();
     [HideInInspector] public UnityEvent OnDead = new UnityEvent();
     [HideInInspector] public UnityEvent OnRespawn = new UnityEvent();
     [HideInInspector] public UnityEvent OnMouseExitFromChecker = new UnityEvent();
@@ -24,6 +20,7 @@ public class Checker : MonoBehaviour
         if (!rb)
         {
             rb = gameObject.AddComponent<Rigidbody>();
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             this.typeOfCheckers = typeOfCheckers;
         }
 
@@ -134,7 +131,7 @@ public class Checker : MonoBehaviour
 
     #region private
 
-    Vector3 MAX_FORCE = new Vector3(250, 0, 250);
+    Vector3 MAX_FORCE = new Vector3(400, 0, 400);
     const string DEAD_ZONE = "dead zone";
     
     Rigidbody rb;

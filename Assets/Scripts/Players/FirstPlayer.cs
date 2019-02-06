@@ -19,6 +19,7 @@ public class FirstPlayer : BasePlayer
 
     public void ResetCurrentRow()
     {
+        //currentRow = Rows.SEVENTH_ROW;
         currentRow = Rows.FIRST_ROW;
     }
 
